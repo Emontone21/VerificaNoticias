@@ -15,14 +15,23 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from .. import __version__, actualizar, config, dominios, historial, pipeline
+from .. import __version__, actualizar, codespaces, config, dominios, historial, pipeline
 from ..fuentes import indice_claimreview
 
 ESTATICOS = Path(__file__).resolve().parent / "static"
 
+
+def hosts_permitidos() -> list[str]:
+    """Solo se aceptan pedidos dirigidos a esta computadora (protege contra sitios web maliciosos).
+
+    Dentro de GitHub Codespaces se acepta además la dirección privada de este codespace.
+    """
+    puerto = int(config.valor(config.obtener(), "servidor.puerto", 8000))
+    return ["127.0.0.1", "localhost", "testserver", *codespaces.hosts(puerto)]
+
+
 app = FastAPI(title="VerificaNoticias", docs_url=None, redoc_url=None, openapi_url=None)
-# Solo se aceptan pedidos dirigidos a esta computadora (protege contra sitios web maliciosos).
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=hosts_permitidos())
 app.mount("/static", StaticFiles(directory=ESTATICOS), name="static")
 
 _trabajos: dict[str, dict] = {}

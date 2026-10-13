@@ -139,3 +139,19 @@ def test_config_usuario_pisa_valores_y_avisa_errores(entorno):
     (entorno / "config.yaml").write_text("puntaje:\n  base: 60\n   fuente: [\n", encoding="utf-8")
     with pytest.raises(config.ErrorConfig, match="línea"):
         config.cargar()
+
+
+def test_codespaces_acepta_solo_su_propia_direccion(monkeypatch):
+    from verificanoticias import codespaces
+    from verificanoticias.web.app import hosts_permitidos
+
+    monkeypatch.delenv("CODESPACES", raising=False)
+    assert codespaces.url(8000) is None
+    assert hosts_permitidos() == ["127.0.0.1", "localhost", "testserver"]
+    monkeypatch.setenv("CODESPACES", "true")
+    monkeypatch.setenv("CODESPACE_NAME", "mi-codespace-abc")
+    monkeypatch.setenv("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN", "app.github.dev")
+    assert codespaces.url(8000) == "https://mi-codespace-abc-8000.app.github.dev"
+    hosts = hosts_permitidos()
+    assert "mi-codespace-abc-8000.app.github.dev" in hosts
+    assert not any(h.startswith("*") or "otro" in h for h in hosts)

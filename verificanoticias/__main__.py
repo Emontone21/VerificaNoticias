@@ -31,22 +31,27 @@ def main() -> None:
 
     import uvicorn
 
-    from . import nlp, red
+    from . import codespaces, nlp, red
     from .web.app import app
 
     red.usar_certificados_del_sistema()
 
     puerto = _puerto_libre(int(config.valor(cfg, "servidor.puerto", 8000)))
-    url = f"http://127.0.0.1:{puerto}"
+    url = codespaces.url(puerto) or f"http://127.0.0.1:{puerto}"
     print("=" * 60)
     print("  VerificaNoticias está funcionando.")
     print(f"  Abre en tu navegador: {url}")
-    print("  Para apagar la aplicación, cierra esta ventana.")
+    if codespaces.activo():
+        print("  Si no se abre solo: pestaña PUERTOS, puerto", puerto, "→ ícono del globo.")
+        print("  Para apagar la aplicación, presiona Ctrl+C en esta terminal.")
+    else:
+        print("  Para apagar la aplicación, cierra esta ventana.")
     print("=" * 60)
     # Cargar los modelos de idioma en segundo plano para que el primer análisis sea más rápido.
     threading.Thread(target=nlp.precargar, daemon=True).start()
     if config.valor(cfg, "servidor.abrir_navegador", True):
-        threading.Timer(1.5, lambda: webbrowser.open(url)).start()
+        # En Codespaces se espera un poco más: GitHub tarda unos segundos en publicar el puerto.
+        threading.Timer(4 if codespaces.activo() else 1.5, lambda: webbrowser.open(url)).start()
     uvicorn.run(app, host="127.0.0.1", port=puerto, log_level="warning")
 
 

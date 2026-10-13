@@ -1,0 +1,17 @@
+{
+  "name": "VerificaNoticias",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+  "postCreateCommand": "bash iniciar.sh --solo-instalar",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "VerificaNoticias",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["README.md"]
+    }
+  }
+}

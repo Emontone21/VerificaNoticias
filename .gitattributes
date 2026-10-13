@@ -2,3 +2,4 @@
 *.py text eol=lf
 *.csv text eol=lf
 *.yaml text eol=lf
+iniciar.sh text eol=lf

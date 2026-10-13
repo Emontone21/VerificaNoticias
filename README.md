@@ -21,7 +21,7 @@ solo conexión a internet.
 ## Índice
 
 1. [Qué necesitas](#1-qué-necesitas)
-2. [Instalación paso a paso (Windows)](#2-instalación-paso-a-paso-windows)
+2. [Instalación paso a paso (Windows)](#2-instalación-paso-a-paso-windows) · [sin instalar nada (Codespaces)](#alternativa-sin-instalar-nada-github-codespaces)
 3. [Cómo usarla](#3-cómo-usarla)
 4. [Cómo leer el resultado](#4-cómo-leer-el-resultado)
 5. [De dónde saca la información](#5-de-dónde-saca-la-información)
@@ -59,6 +59,36 @@ solo conexión a internet.
 6. Cuando diga **"Instalación terminada"**, presiona cualquier tecla para cerrar.
 
 Todo queda dentro de la carpeta de la aplicación. **Para desinstalar, basta con borrar la carpeta.**
+
+### Alternativa sin instalar nada: GitHub Codespaces
+
+Si no quieres instalar nada en tu computadora, puedes usar la aplicación en
+[GitHub Codespaces](https://github.com/features/codespaces): corre en una computadora de GitHub y la
+abres desde tu navegador con tu cuenta de GitHub. Las cuentas personales tienen una cuota mensual
+gratuita de uso; puedes ver cuánto te queda en la configuración de facturación de GitHub.
+
+1. En la página del proyecto en GitHub: botón verde **Code** → pestaña **Codespaces** →
+   **Create codespace**. Se abre un editor en el navegador.
+2. Abajo, en la **Terminal**, escribe esto y presiona Enter:
+
+   ```bash
+   bash iniciar.sh
+   ```
+
+   La primera vez instala todo y descarga los datos (unos minutos). Las siguientes veces arranca enseguida.
+3. Se abre una pestaña nueva con la aplicación. Si no se abre sola, ve a la pestaña **PUERTOS**
+   (al lado de Terminal) y haz clic en el ícono del globo del puerto **8000**.
+
+Ten en cuenta:
+
+- El link es **privado**: solo funciona con tu sesión de GitHub iniciada.
+- El codespace se apaga solo después de unos 30 minutos sin uso. Para volver, abre el proyecto en
+  GitHub → **Code** → **Codespaces** → tu codespace, y otra vez `bash iniciar.sh`.
+- El historial y los datos quedan guardados en tu codespace. GitHub borra los codespaces que no se usan
+  durante un tiempo (por defecto, 30 días), y con ellos el historial.
+- Para apagar la aplicación sin cerrar el codespace, presiona **Ctrl+C** en la terminal.
+- Las búsquedas salen desde servidores de GitHub. DuckDuckGo a veces limita las consultas que vienen de
+  servidores en la nube; si pasa, el resultado lo indica y las demás fuentes siguen funcionando.
 
 ## 3. Cómo usarla
 
@@ -285,10 +315,11 @@ listas/                  listas editables de medios
 tests/                   tests automáticos (sin conexión a internet)
 ```
 
-En otro sistema (Linux o macOS), con [uv](https://docs.astral.sh/uv/) instalado:
+En Linux o macOS: `bash iniciar.sh` instala lo que falte y abre la aplicación. Para desarrollar, con
+[uv](https://docs.astral.sh/uv/):
 
 ```bash
-uv sync                                    # instala todo
+uv sync                                    # instala todo, incluidos los tests
 uv run python -m verificanoticias          # abre la aplicación
 uv run python -m verificanoticias.actualizar   # actualiza datos
 uv run pytest                              # corre los tests
