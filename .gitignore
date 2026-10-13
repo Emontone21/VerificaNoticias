@@ -1,0 +1,13 @@
+# Entorno e instalación local
+.venv/
+/herramientas/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Datos generados por la app (caché, historial, base de verificaciones)
+/datos/
+
+# Configuración personal (se crea al iniciar la app a partir de la predeterminada)
+/config.yaml
+*.egg-info/

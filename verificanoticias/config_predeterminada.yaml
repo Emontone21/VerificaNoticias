@@ -1,0 +1,451 @@
+# =====================================================================
+#  VerificaNoticias - Configuración
+# ---------------------------------------------------------------------
+#  Este archivo se puede editar con el Bloc de notas.
+#  - Las líneas que empiezan con "#" son comentarios (no hacen nada).
+#  - Respeta los espacios al inicio de cada línea: indican qué valor
+#    pertenece a qué sección. Usa espacios, nunca tabulaciones.
+#  - Después de guardar, cierra la app y vuelve a abrirla con INICIAR.bat.
+#  - Si algo se rompe: borra "config.yaml" y vuelve a abrir la app.
+#    Se creará de nuevo con los valores originales.
+# =====================================================================
+
+servidor:
+  puerto: 8000              # si está ocupado, la app prueba el siguiente
+  abrir_navegador: true     # abrir el navegador automáticamente al iniciar
+
+red:
+  timeout_segundos: 15
+  # Identificación que se envía a las APIs públicas (GDELT, Wikipedia).
+  user_agent_apis: "VerificaNoticias/1.0 (aplicacion local de verificacion de noticias)"
+  # Identificación que se usa para descargar artículos de medios.
+  user_agent_navegador: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+  max_megabytes_por_pagina: 5
+  # Sitios que se usan solo para comprobar si hay conexión a internet.
+  sitios_prueba_internet:
+    - "https://www.google.com/generate_204"
+    - "https://www.wikipedia.org"
+    - "https://www.cloudflare.com"
+    - "https://pypi.org"
+
+# Cuántas horas se guarda cada tipo de consulta en la caché local
+# (para no repetir búsquedas iguales).
+cache_horas:
+  busquedas: 6
+  verificadores: 24
+  articulos: 168      # 7 días
+  dominios: 720       # 30 días
+  wikipedia: 168
+
+fuentes:
+  gdelt:
+    activa: true
+    max_resultados: 75
+    periodo: "3months"              # GDELT solo cubre los últimos 3 meses
+    segundos_entre_consultas: 5.5   # GDELT pide no más de 1 consulta cada 5 s
+    buscar_en_verificadores: true   # consulta extra limitada a sitios de verificadores
+  google_news:
+    activa: true
+    # Ediciones de Google News que se consultan según el idioma de la noticia.
+    ediciones:
+      es:
+        - {hl: "es-419", gl: "US", ceid: "US:es-419"}
+        - {hl: "es", gl: "ES", ceid: "ES:es"}
+      en:
+        - {hl: "en-US", gl: "US", ceid: "US:en"}
+  duckduckgo:
+    activa: true
+    # "duckduckgo" usa solo DuckDuckGo. "auto" deja que la librería ddgs
+    # combine varios buscadores (más resistente a bloqueos).
+    backend: "duckduckgo"
+    max_resultados: 25
+    region:
+      es: "xl-es"     # Latinoamérica en español
+      en: "us-en"
+  verificadores:
+    buscar_en_vivo: true
+    max_paginas_a_leer: 6     # páginas de verificadores que se descargan para leer su ClaimReview
+  claimreview_feed:
+    url: "https://storage.googleapis.com/datacommons-feeds/claimreview/latest/data.json"
+    dias_para_sugerir_actualizar: 7
+    max_candidatos: 150
+  dominios:
+    consultar_antiguedad: true
+    rdap_url: "https://rdap.org/domain/"
+    usar_whois_si_falla_rdap: true
+  wikipedia:
+    activa: true
+    max_entidades: 5
+
+# Listas públicas que se descargan con "Actualizar datos".
+# Se guardan en datos/listas_importadas. Tus listas de la carpeta "listas"
+# siempre tienen prioridad sobre las importadas.
+listas_publicas:
+  domain_quality_ratings:
+    activa: true
+    url: "https://raw.githubusercontent.com/hauselin/domain-quality-ratings/main/data/domain_pc1.csv"
+    descripcion: "Lin et al. (2023), PNAS Nexus: puntaje de calidad de ~11.500 dominios (0 a 1)"
+    umbral_confiable: 0.75        # puntaje >= esto: se considera confiable
+    umbral_poco_confiable: 0.25   # puntaje <= esto: se considera poco confiable
+  opensources:
+    activa: true
+    url: "https://raw.githubusercontent.com/BigMcLargeHuge/opensources/master/sources/sources.json"
+    descripcion: "OpenSources (2017, puede estar desactualizada)"
+    tipos_desinformacion: ["fake", "fake news", "conspiracy", "junksci", "hate", "rumor"]
+    tipos_satira: ["satire"]
+  verificadores_del_feed:
+    activa: true
+    minimo_verificaciones: 5      # dominios con al menos N verificaciones en el feed ClaimReview
+
+# Umbrales de similitud de texto (TF-IDF, de 0 a 1).
+similitud:
+  verificacion_fuerte: 0.35       # una verificación con esta similitud o más se aplica al puntaje...
+  verificacion_cobertura_minima: 0.60  # ...si además esta proporción de sus palabras (pesando más las raras) está en la noticia
+  verificacion_relacionada: 0.20  # por debajo de lo anterior y por encima de esto: se muestra, pero no cuenta
+  cobertura: 0.25                 # un artículo "dice lo mismo" con esta similitud o más
+  titular_cuerpo_minimo: 0.30     # proporción mínima de palabras del titular que aparecen en el texto
+
+# ---------------------------------------------------------------------
+#  PUNTAJE: base + suma de señales, siempre entre 0 y 100.
+#  Los números positivos suman; los negativos restan.
+# ---------------------------------------------------------------------
+puntaje:
+  base: 50
+
+  verificadores:
+    falso_tope: 10               # veredicto "falso": el puntaje no puede superar esto
+    enganoso_tope: 35            # "engañoso", "sacado de contexto", etc.
+    sin_evidencia_tope: 40       # "sin evidencia", "insostenible", etc.
+    satira_tope: 30              # el verificador dice que es humor/sátira
+    mayormente_verdadero_minimo: 70
+    verdadero_minimo: 85         # veredicto "verdadero": el puntaje no puede bajar de esto
+    articulo_verificador_sin_claimreview_falso: -20   # artículo de verificador o medio confiable que dice "Falso" en el título, sin marcado ClaimReview
+
+  corroboracion:
+    por_medio_confiable: 10
+    max_medios_confiables: 30
+    por_medio_sin_clasificar: 2
+    max_medios_sin_clasificar: 6
+    por_sitio_desinformacion: -3
+    max_sitios_desinformacion: -9
+    tope_positivo: 35
+    sin_cobertura_alto_impacto_vieja: -20             # más de "horas_reciente" desde la publicación
+    sin_cobertura_alto_impacto_fecha_desconocida: -12
+    sin_cobertura_alto_impacto_reciente: -5           # puede ser demasiado nueva
+    sin_cobertura_normal: -8
+    horas_reciente: 48
+
+  fuente:
+    medio_confiable: 15
+    verificador: 15
+    desinformacion: -30
+    satira: -20
+    imitacion: -25
+    imitacion_dominio_antiguo: -10    # parece imitación pero el dominio tiene más de 5 años
+    dominio_menor_6_meses: -15
+    dominio_menor_2_anios: -5
+    dominio_mayor_5_anios: 5
+
+  alertas:
+    mayusculas: -5
+    exclamaciones: -5
+    palabra_gancho: -3
+    max_palabras_gancho: -12
+    sin_autor: -4
+    sin_fecha: -4
+    sin_fuentes_citadas: -5
+    noticia_vieja: -10
+    titular_no_coincide: -8
+    tope: -35
+
+  calidad:
+    cita_fuentes: 4
+    autor_y_fecha: 4
+    tope: 8
+
+etiquetas:
+  confirmada: 80                 # puntaje mínimo para "Confirmada"...
+  medios_para_confirmar: 3       # ...y además esta cantidad de medios confiables independientes
+  probablemente_verdadera: 60
+  dudosa: 40                     # por debajo de esto: "Probablemente falsa"
+  alertas_minimas_para_opinar: 10   # sin otra evidencia, se necesita al menos esta suma de alertas para no decir "Sin datos suficientes"
+
+# ---------------------------------------------------------------------
+#  DETECCIÓN DE SEÑALES DE ALERTA
+#  Las palabras se comparan sin mayúsculas ni tildes.
+#  Una palabra que termina en * coincide con todo lo que empiece así
+#  (por ejemplo "asesin*" coincide con asesinato, asesinado, asesinó...).
+# ---------------------------------------------------------------------
+alertas:
+  mayusculas_proporcion_titular: 0.30   # proporción de palabras en MAYÚSCULAS en el titular
+  mayusculas_proporcion_cuerpo: 0.08
+  exclamaciones_titular: 2              # cantidad de "!" o "¡" en el titular
+  exclamaciones_cada_1000_caracteres: 3
+  minimo_caracteres_cuerpo: 300         # con menos texto no se evalúan algunas señales
+  dias_noticia_vieja: 180
+  dias_sin_cobertura_reciente: 30
+
+  palabras_gancho:
+    es:
+      - "urgente"
+      - "compartí"
+      - "compartilo"
+      - "compártelo"
+      - "compártanlo"
+      - "difundí"
+      - "difundilo"
+      - "difúndelo"
+      - "difundan"
+      - "reenvíalo"
+      - "pasalo"
+      - "pásalo"
+      - "viralizalo"
+      - "viralicen"
+      - "antes de que lo borren"
+      - "antes de que lo eliminen"
+      - "antes de que lo censuren"
+      - "no quieren que sepas"
+      - "no quieren que se sepa"
+      - "los medios no lo dicen"
+      - "los medios no te lo dicen"
+      - "los medios callan"
+      - "los medios ocultan"
+      - "nadie te lo dice"
+      - "nadie habla de esto"
+      - "no lo vas a creer"
+      - "no vas a creer"
+      - "no podrás creer"
+      - "increíble"
+      - "impactante"
+      - "escandaloso"
+      - "noticia bomba"
+      - "milagro"
+      - "milagroso"
+      - "cura definitiva"
+      - "la verdad oculta"
+      - "lo que ocultan"
+      - "despierta"
+      - "despierten"
+      - "abran los ojos"
+      - "100% real"
+      - "100% comprobado"
+      - "100% confirmado"
+      - "te van a censurar"
+      - "censurado"
+      - "lo borraron"
+      - "mirá lo que"
+      - "mira lo que"
+      - "miren lo que"
+      - "gravísimo"
+      - "los médicos odian"
+      - "los médicos no quieren"
+    en:
+      - "urgent"
+      - "share before"
+      - "share this before"
+      - "share now"
+      - "before it's deleted"
+      - "before they delete"
+      - "they don't want you to know"
+      - "what they don't want you to know"
+      - "mainstream media won't"
+      - "the media won't tell you"
+      - "media is hiding"
+      - "you won't believe"
+      - "shocking"
+      - "unbelievable"
+      - "bombshell"
+      - "miracle"
+      - "miracle cure"
+      - "wake up"
+      - "sheeple"
+      - "100% true"
+      - "100% proof"
+      - "censored"
+      - "banned video"
+      - "doctors hate"
+      - "doctors don't want"
+      - "nobody is talking about"
+      - "hidden truth"
+
+  palabras_alto_impacto:
+    es:
+      - "murió"
+      - "muere"
+      - "muerte"
+      - "muerto"
+      - "muerta"
+      - "falleci*"
+      - "fallece"
+      - "asesin*"
+      - "atentado"
+      - "bomba"
+      - "explosión"
+      - "guerra"
+      - "invasión"
+      - "invadi*"
+      - "golpe de estado"
+      - "renuncia"
+      - "renunció"
+      - "dimite"
+      - "dimisión"
+      - "destitu*"
+      - "detenido"
+      - "detenida"
+      - "arrest*"
+      - "encarcel*"
+      - "condenad*"
+      - "terremoto"
+      - "sismo"
+      - "tsunami"
+      - "huracán"
+      - "pandemia"
+      - "epidemia"
+      - "brote"
+      - "virus"
+      - "vacuna*"
+      - "cura"
+      - "curar"
+      - "cáncer"
+      - "decreto"
+      - "prohib*"
+      - "fraude"
+      - "corralito"
+      - "devaluación"
+      - "expropia*"
+      - "quiebra"
+      - "catástrofe"
+      - "tragedia"
+      - "víctimas"
+      - "emergencia"
+      - "evacua*"
+      - "secuestr*"
+      - "estado de sitio"
+      - "toque de queda"
+      - "cuarentena"
+      - "confinamiento"
+      - "nuclear"
+      - "misil*"
+      - "masacre"
+      - "tiroteo"
+      - "juicio político"
+    en:
+      - "dies"
+      - "died"
+      - "dead"
+      - "death"
+      - "killed"
+      - "murder*"
+      - "assassin*"
+      - "attack*"
+      - "bomb*"
+      - "explosion"
+      - "war"
+      - "invasion"
+      - "invade*"
+      - "coup"
+      - "resign*"
+      - "arrest*"
+      - "jailed"
+      - "convicted"
+      - "earthquake"
+      - "tsunami"
+      - "hurricane"
+      - "pandemic"
+      - "epidemic"
+      - "outbreak"
+      - "virus"
+      - "vaccine*"
+      - "cure"
+      - "cures"
+      - "cancer"
+      - "decree"
+      - "banned"
+      - "bans"
+      - "fraud"
+      - "bankrupt*"
+      - "catastroph*"
+      - "tragedy"
+      - "victims"
+      - "emergency"
+      - "evacuat*"
+      - "kidnap*"
+      - "martial law"
+      - "curfew"
+      - "lockdown"
+      - "quarantine"
+      - "nuclear"
+      - "missile*"
+      - "massacre"
+      - "shooting"
+      - "impeach*"
+
+  # Expresiones que indican que el texto cita fuentes.
+  atribuciones:
+    es:
+      - "según"
+      - "de acuerdo con"
+      - "de acuerdo a"
+      - "informó"
+      - "informaron"
+      - "dijo"
+      - "dijeron"
+      - "declaró"
+      - "afirmó"
+      - "explicó"
+      - "señaló"
+      - "indicó"
+      - "aseguró"
+      - "sostuvo"
+      - "confirmó"
+      - "anunció"
+      - "comunicado"
+      - "portavoz"
+      - "vocero"
+      - "vocera"
+      - "fuentes"
+      - "informe"
+      - "estudio publicado"
+      - "datos de"
+      - "cifras de"
+    en:
+      - "according to"
+      - "said"
+      - "says"
+      - "told"
+      - "reported"
+      - "stated"
+      - "announced"
+      - "confirmed"
+      - "spokesperson"
+      - "spokesman"
+      - "spokeswoman"
+      - "statement"
+      - "report"
+      - "study published"
+      - "data from"
+  # Palabras que sugieren que se presenta como algo actual.
+  palabras_actualidad:
+    es: ["hoy", "ahora", "ahora mismo", "último momento", "urgente", "en este momento", "esta mañana", "esta noche", "recién"]
+    en: ["today", "now", "right now", "breaking", "urgent", "this morning", "tonight", "just now"]
+
+# Detección de dominios que imitan a medios reales.
+imitacion:
+  largo_minimo_marca: 5          # nombres más cortos (bbc, efe) solo se comparan de forma exacta
+  distancia_maxima_corta: 1      # letras distintas permitidas para nombres de 5 a 8 letras
+  distancia_maxima_larga: 2      # para nombres de 9 letras o más
+  # Palabras demasiado comunes como para considerarlas "marca".
+  palabras_comunes: ["noticias", "news", "diario", "mundo", "tiempo", "nacion", "pais", "semana", "prensa", "today", "times", "daily", "post", "nature", "journal", "radio", "online", "digital", "info", "press", "media", "global", "world", "cronica", "republica", "universal", "observador", "economista", "periodico", "comercio", "informador", "telegraph", "herald", "tribune", "independent", "guardian", "express", "mirror", "nacional", "popular"]
+  # Dominios que se parecen a un medio pero son legítimos (no marcar).
+  excepciones: ["eltiempo.es"]
+
+# Diccionario para interpretar los veredictos de los verificadores.
+# Si un veredicto contiene varias de estas expresiones, gana la más larga
+# (así "parcialmente falso" gana sobre "falso" y "not true" sobre "true").
+veredictos:
+  falso: ["falso", "falsa", "false", "fake", "fake news", "bulo", "bulos", "mentira", "mentiroso", "pants on fire", "four pinocchios", "cuatro pinochos", "hoax", "fabricated", "fabricado", "inventado", "inventada", "incorrect", "incorrecto", "incorrecta", "wrong", "scam", "estafa", "montaje", "timo", "no es cierto", "no es verdad", "not true", "untrue", "misattributed", "falsamente atribuido", "faux", "falsch", "onwaar", "false headline", "titular falso", "inexistente", "no existe", "not real", "no es real"]
+  enganoso: ["enganoso", "enganosa", "misleading", "mostly false", "mayormente falso", "mayoritariamente falso", "parcialmente falso", "partly false", "partially false", "half true", "verdad a medias", "media verdad", "medio verdadero", "exagerado", "exagerada", "exaggerated", "exaggeration", "impreciso", "imprecisa", "inexacto", "inexacta", "inaccurate", "sacado de contexto", "fuera de contexto", "out of context", "missing context", "needs context", "lacks context", "falta contexto", "falta de contexto", "sin contexto", "manipulado", "manipulada", "manipulated", "altered", "alterado", "alterada", "false context", "contexto falso", "doctored", "distorted", "distorsionado", "distorts the facts", "cuestionable", "discutible", "mixture", "mixed", "mix", "mixto", "three pinocchios", "two pinocchios", "tres pinochos", "dos pinochos", "miscaptioned", "outdated", "desactualizado", "old video", "video viejo", "foto antigua", "imagen antigua", "trucado", "trucada", "not the whole story", "partly true", "parcialmente verdadero", "parcialmente cierto"]
+  sin_evidencia: ["sin evidencia", "sin evidencias", "no hay evidencia", "no hay evidencias", "sin pruebas", "no hay pruebas", "no hay datos", "no evidence", "unproven", "unsupported", "unverified", "no verificado", "no verificable", "inverificable", "inchequeable", "insostenible", "apresurado", "no basis", "sin fundamento", "infundado", "unfounded", "research in progress", "sem provas", "legend"]
+  mayormente_verdadero: ["mostly true", "mayormente verdadero", "mayoritariamente verdadero", "verdadero pero", "cierto pero", "true but", "verdadeiro mas", "casi verdadero", "one pinocchio", "un pinocho", "mostly accurate"]
+  verdadero: ["verdadero", "verdadera", "true", "cierto", "cierta", "correct", "correcto", "correcta", "accurate", "verdade", "verdadeiro", "vrai", "wahr", "vero", "waar", "verdad", "confirmed", "confirmado", "confirmada", "correct attribution", "real", "es real"]
+  satira: ["satira", "satire", "satirical", "satirico", "satirica", "parodia", "parody", "labeled satire", "originated as satire", "humor", "broma"]

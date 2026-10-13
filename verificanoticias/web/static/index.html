@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VerificaNoticias</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='10' width='52' height='44' rx='6' fill='none' stroke='%23234B82' stroke-width='6' transform='rotate(-6 32 32)'/%3E%3Cpath d='M20 33l8 8 16-17' fill='none' stroke='%23234B82' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/estilos.css">
+</head>
+<body>
+  <header class="cabecera">
+    <div class="cabecera-interior">
+      <a class="marca" href="/" aria-label="VerificaNoticias, inicio">
+        <span class="marca-sello" aria-hidden="true">✓</span>
+        <span>VerificaNoticias</span>
+      </a>
+      <button type="button" id="btn-historial" class="boton-secundario" aria-expanded="false" aria-controls="panel-historial">
+        Historial <span id="historial-cantidad" class="contador"></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="contenido">
+    <section class="entrada" aria-labelledby="titulo-entrada">
+      <h1 id="titulo-entrada">¿Es cierta esta noticia?</h1>
+      <p class="aviso-principal" role="note">
+        <strong>El resultado es una ayuda para decidir, no una verdad absoluta.</strong>
+        La aplicación reúne lo que dicen verificadores profesionales y otros medios, y revisa señales de alerta.
+        Mira la evidencia antes de creer o compartir.
+      </p>
+      <form id="form-analisis" novalidate>
+        <label for="texto" class="etiqueta-campo">Pega el texto, el titular o el link de la noticia</label>
+        <textarea id="texto" name="texto" rows="6" spellcheck="false"
+          placeholder="Por ejemplo, el mensaje que te llegó por WhatsApp, o un link como https://www.sitio.com/noticia"></textarea>
+        <div class="acciones">
+          <button type="submit" id="btn-analizar" class="boton-principal">Analizar</button>
+          <p class="ayuda">Consulta GDELT, Google News, DuckDuckGo, verificadores y Wikipedia. Suele tardar entre 15 y 40 segundos.</p>
+        </div>
+        <p id="error-entrada" class="mensaje-error" role="alert" hidden></p>
+      </form>
+    </section>
+
+    <section id="progreso" class="progreso" hidden aria-live="polite" aria-label="Avance del análisis">
+      <div class="barra-progreso" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="barra-progreso">
+        <div id="barra-relleno"></div>
+      </div>
+      <ol id="pasos" class="pasos"></ol>
+    </section>
+
+    <section id="resultado" class="resultado" hidden tabindex="-1" aria-label="Resultado del análisis"></section>
+  </main>
+
+  <aside id="panel-historial" class="panel-historial" hidden aria-label="Historial de análisis">
+    <div class="panel-cabecera">
+      <h2>Historial</h2>
+      <button type="button" id="btn-cerrar-historial" class="boton-icono" aria-label="Cerrar historial">×</button>
+    </div>
+    <p class="panel-nota">Se guarda solo en esta computadora.</p>
+    <ul id="lista-historial" class="lista-historial"></ul>
+    <button type="button" id="btn-borrar-historial" class="boton-texto peligro">Borrar todo el historial</button>
+  </aside>
+
+  <footer class="pie">
+    <div class="pie-interior">
+      <div id="estado-datos" class="estado-datos">Cargando estado de los datos…</div>
+      <div class="pie-acciones">
+        <button type="button" id="btn-actualizar" class="boton-secundario">Actualizar datos</button>
+        <span id="mensaje-actualizacion" class="mensaje-actualizacion" aria-live="polite"></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

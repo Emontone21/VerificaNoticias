@@ -1,0 +1,70 @@
+{
+ "@context": "http://schema.org",
+ "@type": "DataFeed",
+ "dataFeedElement": [
+  {
+   "@type": "DataFeedItem",
+   "dateCreated": "2021-07-01",
+   "item": [
+    {
+     "@context": "http://schema.org",
+     "@type": "ClaimReview",
+     "author": {
+      "@type": "Organization",
+      "name": "Fast Check CL",
+      "url": "https://www.fastcheck.cl/"
+     },
+     "claimReviewed": "Vacunas contra el Covid-19 causan infertilidad",
+     "datePublished": "2021-06-30",
+     "reviewRating": {
+      "@type": "Rating",
+      "alternateName": "Falso"
+     },
+     "url": "https://www.fastcheck.cl/2021/06/30/vacunas-infertilidad/"
+    }
+   ]
+  },
+  {
+   "@type": "DataFeedItem",
+   "item": [
+    {
+     "@context": "http://schema.org",
+     "@type": "ClaimReview",
+     "author": {
+      "@type": "Organization",
+      "name": "PolitiFact",
+      "url": "https://www.politifact.com/"
+     },
+     "claimReviewed": "Pope Francis is dead.",
+     "datePublished": "2023-03-30",
+     "reviewRating": {
+      "@type": "Rating",
+      "alternateName": "Pants on Fire"
+     },
+     "url": "https://www.politifact.com/factchecks/2023/mar/30/pope-dead/"
+    }
+   ]
+  },
+  {
+   "@type": "DataFeedItem",
+   "item": null
+  },
+  {
+   "@type": "DataFeedItem",
+   "item": [
+    {
+     "@type": "ClaimReview",
+     "author": {
+      "name": "Fast Check CL"
+     },
+     "claimReviewed": "Las vacunas contra el covid-19 causan VIH",
+     "datePublished": "2021-12-01",
+     "reviewRating": {
+      "alternateName": "Falso"
+     },
+     "url": "https://www.fastcheck.cl/2021/12/01/vacunas-vih/"
+    }
+   ]
+  }
+ ]
+}
